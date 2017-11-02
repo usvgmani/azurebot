@@ -1,6 +1,5 @@
 var restify = require('restify');
 var builder = require('botbuilder');
-var apiairecognizer = require('api-ai-recognizer');
 //=========================================================
 // Bot Setup
 //=========================================================
@@ -15,67 +14,84 @@ server.listen(process.env.port || process.env.PORT || 3978, function () {
 var connector = new builder.ChatConnector({
     //MicrosoftAppId : process.env.MICROSOFT_APP_ID,
     //MicrosoftAppPassword : process.env.MICROSOFT_APP_PASSWORD
-    appId:'b3cedff9-fbdf-4a88-a4fc-d78543ef6e59',
-    appPassword: 'UaraEhZSSMosKq9789VqbRD'
+    //appId:null,
+    //appPassword:null
+    appId:'f34a4555-2220-441e-8025-fd5b14747071',
+    appPassword: 'kignmYNCG96?daEJB830&}['
 });
-var bot = new builder.UniversalBot(connector);
 server.post('/api/messages', connector.listen());
 
 //=========================================================
 // Bots Dialogs
-//=========================================================
-// Create LUIS recognizer that points at our model and add it as the root '/' dialog for our Cortana Bot.
-//var model = 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/b2aeee67-84d0-4c4a-8722-343cafa0ffe6?subscription-key=4db27f29310b4779a2d1b60775dfcbd6&verbose=true&timezoneOffset=0.0&spellCheck=false&q=';
-//var recognizer = new builder.LuisRecognizer(model);
-//var dialog = new builder.IntentDialog({ recognizers: [recognizer] });
+//////////////////////////////////////////////////////////////////////////////////////
+// Create your bot with a function to receive messages from the user.
+// This default message handler is invoked if the user's utterance doesn't
+// match any intents handled by other dialogs.
+var bot = new builder.UniversalBot(connector, function (session, args) {
+    session.send("Hi... I'm the note bot sample. I can create new notes, read saved notes to you and delete notes.");
 
-var recognizer = new apiairecognizer('8986813ad34a4719ac401658dfe5b0e5');
-var intents = new builder.IntentDialog({
-    recognizers: [recognizer]
+   // If the object for storing notes in session.userData doesn't exist yet, initialize it
+   if (!session.userData.notes) {
+       session.userData.notes = {};
+       console.log("initializing userData.notes in default message handler");
+   }
 });
+// Add global LUIS recognizer to bot
+var luisAppUrl = process.env.LUIS_APP_URL || 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/a2cc5276-1390-4dec-8049-4f1df2d6ebac?subscription-key=582f52680d1349a98ce38be980b6d018&staging=true&verbose=true&timezoneOffset=0&q=';
+bot.recognizer(new builder.LuisRecognizer(luisAppUrl));
+// CreateNote dialog
+bot.dialog('CreateNote', [
+    function (session, args, next) {
+        // Resolve and store any Note.Title entity passed from LUIS.
+        var intent = args.intent;
+        var title = builder.EntityRecognizer.findEntity(intent.entities, 'Note.Title');
 
-function smalltalk(session, args){  
-  var fulfillment =  builder.EntityRecognizer.findEntity(args.entities, 'fulfillment');
-  if (fulfillment){
-        var speech = fulfillment.entity;
-        session.send(speech);
-  }else{
-    session.send('hehehe! had enuf with Small talk?! Come on! ');
-  }
-}
-
-bot.dialog('/',intents);
-
-// Add intent handlers
-intents.matches('AnWeatherIntent',function(session){
-    session.send("Sunny... may snow in 10 seconds... windy at 15000 miles/sec ..halestorm.. thunderstorm.. do you see Thor!");
-});
-intents.matches('smalltalk.greetings', smalltalk);
-intents.matches('smalltalk.agent', smalltalk);
-intents.matches('smalltalk.appraisal', smalltalk);
-intents.matches('smalltalk.dialog', smalltalk);
-intents.matches('smalltalk.emotions', smalltalk);
-intents.matches('smalltalk.person', smalltalk);
-intents.matches('smalltalk.topics', smalltalk);
-intents.matches('smalltalk.user', smalltalk);
-intents.matches('smalltalk.unknown', smalltalk);
-intents.matches('WhatHappensIfIntent',  [
-    function (session, args, next) {       
-        var forgesignature = builder.EntityRecognizer.findEntity(args.entities, 'Whatif_forgesignature');
-        if (!forgesignature) {
-            builder.Prompts.text(session, "hmm thats a good question!");
+        var note = session.dialogData.note = {
+          title: title ? title.entity : null,
+        };
+        
+        // Prompt for title
+        if (!note.title) {
+            builder.Prompts.text(session, 'What would you like to call your note?');
         } else {
-            next({ response: "mm-okay...mm-hmm thats bad!You should not forge rather... " });
+            next();
+        }
+    },
+    function (session, results, next) {
+        var note = session.dialogData.note;
+        if (results.response) {
+            note.title = results.response;
+        }
+
+        // Prompt for the text of the note
+        if (!note.text) {
+            builder.Prompts.text(session, 'What would you like to say in your note?');
+        } else {
+            next();
         }
     },
     function (session, results) {
+        var note = session.dialogData.note;
         if (results.response) {
-            session.send("'%s' ", results.response);
-        } else {
-            session.send("I don't think you are happy with my response so ...");
+            note.text = results.response;
         }
+        
+        // If the object for storing notes in session.userData doesn't exist yet, initialize it
+        if (!session.userData.notes) {
+            session.userData.notes = {};
+            console.log("initializing session.userData.notes in CreateNote dialog");
+        }
+        // Save notes in the notes object
+        session.userData.notes[note.title] = note;
+
+        // Send confirmation to user
+        session.endDialog('Creating note named "%s" with text "%s"',
+            note.title, note.text);
     }
-])
-intents.onDefault(function(session){
-    session.send("Sorry...can you please rephrase?");
+]).triggerAction({ 
+    matches: 'Note.Create',
+    confirmPrompt: "This will cancel the creation of the note you started. Are you sure?" 
+}).cancelAction('cancelCreateNote', "Note canceled.", {
+    matches: /^(cancel|nevermind)/i,
+    confirmPrompt: "Are you sure?"
 });

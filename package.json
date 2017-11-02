@@ -24,9 +24,9 @@
   "homepage": "https://github.com/usvgmani/azurebot#readme",
   "dependencies": {
     "api-ai-recognizer": "^1.0.2",
-    "botbuilder": "^3.7.0",
+    "botbuilder": "^3.11.0",
     "express": "^4.15.2",
-    "restify": "^4.3.0",
+    "restify": "^4.3.1",
     "socket.io": "^1.7.3"
   }
 }
