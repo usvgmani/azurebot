@@ -16,8 +16,7 @@ var connector = new builder.ChatConnector({
     //MicrosoftAppPassword : process.env.MICROSOFT_APP_PASSWORD
     //appId:null,
     //appPassword:null
-    appId:'f34a4555-2220-441e-8025-fd5b14747071',
-    appPassword: 'kignmYNCG96?daEJB830&}['
+    
 });
 server.post('/api/messages', connector.listen());
 
