@@ -1,6 +1,8 @@
 let restify = require('restify');
 let builder = require('botbuilder');
-let qAnda = require('./data.json')
+var GlobalRecognizer = require('./recognizers/globalRecognizer');
+var CreateDialog =  require('./dialogs/createDialog')
+let qAnda = require('./data.json');
 //=========================================================
 // Bot Setup
 //=========================================================
@@ -22,51 +24,60 @@ server.post('/api/messages', connector.listen());
 
 
 //=========================================================
-// Utility Functions
-//////////////////////////////////////////////////////////////////////////////////////
-
-function HelpDeskQuestionFinder(session,args,next) {
-    let intentLst = args.intent;
-    session.dialogData.HelpDeskIntent=intentLst;        
-    session.dialogData.HelpDeskAnswer = qAnda.complianceqa.filter(function(val, index, array) {
-        return val.intent === intentLst.intent;
-    })
-    console.log(intentLst);
-    console.log(session.dialogData.HelpDeskAnswer);
-    next();
-}
-function HelpDeskAnwser(session, results) {
-    session.send("Your intent was " + session.dialogData.HelpDeskIntent.intents[0].intent + " with probabality-" + session.dialogData.HelpDeskIntent.intents[0].score);
-    session.send("Thanks for your question, we have an answer for you! " + session.dialogData.HelpDeskAnswer[0].answer);
-    session.endDialog();
-}
-//=========================================================
 // Bots Dialogs
 //////////////////////////////////////////////////////////////////////////////////////
 let bot = new builder.UniversalBot(connector, function (session, args) {
     session.send("Please rephrase your question!");  
 });
-// Add global LUIS recognizer to bot https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/4ee50075-25c9-495b-877e-ec48f4a0a837?subscription-key=4db27f29310b4779a2d1b60775dfcbd6&staging=true&verbose=true&timezoneOffset=0&q=	
+
+bot.on('conversationUpdate', function(message) {
+    // Send a hello message when bot is added
+    if (message.membersAdded) {
+        message.membersAdded.forEach(function(identity) {
+            if (identity.id === message.address.bot.id) {
+                var reply = new builder.Message().address(message.address).text("Hi! Welcome to Compliance FAQ Bot!!!");
+                bot.send(reply);
+            }
+        });
+    }
+});
+
+GlobalRecognizer.addGlobalRecognizer(bot);
+// Add global LUIS recognizer to bot
 let luisAppUrl = process.env.LUIS_APP_URL || 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/4ee50075-25c9-495b-877e-ec48f4a0a837?subscription-key=4db27f29310b4779a2d1b60775dfcbd6&staging=true&verbose=true&timezoneOffset=0&q=';
+
 bot.recognizer(new builder.LuisRecognizer(luisAppUrl));
 // CRD number  dialog
-bot.dialog('compliancehelpdesk.WHERE_CRD_NO', [  HelpDeskQuestionFinder,  HelpDeskAnwser ]).triggerAction({ 
-    matches: 'compliancehelpdesk.WHERE_CRD_NO',
-    confirmPrompt: "This will cancel the creation of the note you started. Are you sure?" 
+bot.dialog('greeting', function (session, args, next) {
+    session.endDialog("Hi! Welcome to Compliance FAQ Bot!!! <br/>How can we help you?");
+})
+.triggerAction({
+    matches: "Greeting",
 });
-bot.dialog('compliancehelpdesk.HOW_COMPLETE_FINRA_CE', [ HelpDeskQuestionFinder,  HelpDeskAnwser ]).triggerAction({ 
-    matches: 'compliancehelpdesk.HOW_COMPLETE_FINRA_CE',
-    confirmPrompt: "This will cancel the creation of the note you started. Are you sure?" 
+bot.dialog('helpDialog', function (session) {
+    session.endDialog("This bot will echo back anything you say. Say 'goodbye' to quit.");
+}).triggerAction({ matches: 'Help' });
+
+// Add a global endConversation() action that is bound to the 'Goodbye' intent
+bot.endConversationAction('goodbyeAction', "Thanks and hope your expectations were met.", { matches: 'Goodbye' });
+
+bot.dialog('cancel', [function (session, args, next) {
+    // session.endDialog("This is a bot relating to Compliance Portal. <br/>How can we help you?");
+    builder.Prompts.choice(session, "This will end your conversation. Do you have any further question?", "yes|no", {listStyle: builder.ListStyle.button});     
+},function (session, results) {           
+    // session.send(`You chose: ${results.response.entity}.`); 
+    if(results.response.entity=="yes"){
+        var msg = "Welcome to Compliance FAQ Bot!!! Please ask your question.";
+        session.endConversation(msg);
+    }else{
+        session.send(" Thanks and hope your expectations were met.");
+    }
+}])
+.triggerAction({matches: 'CancelIntent'});
+
+//create dialogs for luis intents
+qAnda.complianceqa.forEach(function(element) {
+   CreateDialog.createLuisDialog(bot, element.intent);
 });
-bot.dialog('compliancehelpdesk.DID_I_COMPLETE_FINRA', [ HelpDeskQuestionFinder,  HelpDeskAnwser]).triggerAction({ 
-    matches: 'compliancehelpdesk.DID_I_COMPLETE_FINRA',
-    confirmPrompt: "This will cancel the creation of the note you started. Are you sure?" 
-});
-bot.dialog('compliancehelpdesk.DECLARE_INVESTMENTS', [ HelpDeskQuestionFinder,  HelpDeskAnwser]).triggerAction({ 
-    matches: 'compliancehelpdesk.DECLARE_INVESTMENTS',
-    confirmPrompt: "This will cancel the creation of the note you started. Are you sure?" 
-});
-bot.dialog('compliancehelpdesk.MMC_CASE_STATUS', [ HelpDeskQuestionFinder,  HelpDeskAnwser]).triggerAction({ 
-    matches: 'compliancehelpdesk.MMC_CASE_STATUS',
-    confirmPrompt: "This will cancel the creation of the note you started. Are you sure?" 
-});
+
+

@@ -2,6 +2,17 @@
 {"intent":"compliancehelpdesk.WHERE_CRD_NO","answer":"Your CRD number was included in the email notifying you of your FINRA Reg Element CE requirement.  You can also find your CRD number on BrokerCheck [link]"},
 {"intent":"compliancehelpdesk.DID_I_COMPLETE_FINRA","answer":"FINRA will send an email confirmation when your CE is complete.  You do not need to forward this to the home office, but please retain it for your own records."},
 {"intent":"compliancehelpdesk.DECLARE_INVESTMENTS","answer":"You can review and update your disclosed outside business activities on the Compliance Portal. To disclose a new activity, click 'Submit New' and answers the questions in the Wizard Form. To make changes to an existing activity, click'Update' next to the activity that needs to be updated."},
-{"intent":"compliancehelpdesk.HOW_COMPLETE_FINRA_CE","answer":"FINRA CE can be completed by doing this...."},
-{"intent":"compliancehelpdesk.MMC_CASE_STATUS","answer":"You can access your MMC case @ http://mmc.nml.com/ECPMMCSWeb/index.htm"}
+{"intent":"compliancehelpdesk.HOW_COMPLETE_FINRA_CE","answer":"Thanks for your question!"},
+{"intent":"compliancehelpdesk.AML_COURSE_CERTIFICATE","answer":"You can print your completion certificate from the Learning Network [link]"},
+{"intent":"compliancehelpdesk.DISCLOSURE_STATEMENT ","answer":"The Personal Disclosure Statement was discontinued as of January 1, 2017."},
+{"intent":"compliancehelpdesk.SWITCH_FORM","answer":"There is a Switch decision grid available on LINKnet. [link]s"},
+{"intent":"compliancehelpdesk.WHEN_I_CONSIDERED_ACTIVE","answer":"Your registration will be reactivated the day after you completed your FINRA CE course."},
+{"intent":"compliancehelpdesk.DISCLOSABLE_EVENT","answer":"Thanks for your question!"},
+{"intent":"compliancehelpdesk.FINRA_DISCLOSURE_EVENTS","answer":"Thanks for your question!"},
+{"intent":"compliancehelpdesk.MARKETING_MATERIAL_FOR_REVIEW","answer":"Thanks for your question!"},
+{"intent":"compliancehelpdesk.MMR_CASE_STATUS","answer":"Thanks for your question!"},
+{"intent":"compliancehelpdesk.OPENING_SECURITY_ACCOUNT","answer":"Thanks for your question!"},
+{"intent":"compliancehelpdesk.PERSONAL_SECURITY_ACCOUNT","answer":"Thanks for your question!"},
+{"intent":"compliancehelpdesk.RDAQ","answer":"Thanks for your question!"},
+{"intent":"compliancehelpdesk.RESPONSE_TO_COR_REVIEW","answer":"Thanks for your question!"}
 ]}
