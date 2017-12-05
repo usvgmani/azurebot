@@ -17,8 +17,8 @@ server.listen(process.env.port || process.env.PORT || 3978, function () {
 let connector = new builder.ChatConnector({
     //MicrosoftAppId : process.env.MICROSOFT_APP_ID,
     //MicrosoftAppPassword : process.env.MICROSOFT_APP_PASSWORD
-    appId:'c7d4fe8a-c154-426f-8780-6d57edf3325f',
-    appPassword:'lvWVW205=|fcjorFWSH14_^'    
+    appId:process.env.MICROSOFT_APP_ID,
+    appPassword:process.env.MICROSOFT_APP_PASSWORD    
 });
 server.post('/api/messages', connector.listen());
 
@@ -44,7 +44,7 @@ bot.on('conversationUpdate', function(message) {
 
 GlobalRecognizer.addGlobalRecognizer(bot);
 // Add global LUIS recognizer to bot
-let luisAppUrl = process.env.LUIS_APP_URL || 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/4ee50075-25c9-495b-877e-ec48f4a0a837?subscription-key=4db27f29310b4779a2d1b60775dfcbd6&staging=true&verbose=true&timezoneOffset=0&q=';
+let luisAppUrl = process.env.LUIS_APP_URL;
 
 bot.recognizer(new builder.LuisRecognizer(luisAppUrl));
 // CRD number  dialog
