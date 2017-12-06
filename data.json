@@ -4,7 +4,7 @@
 {"intent":"compliancehelpdesk.DECLARE_INVESTMENTS","answer":"You can review and update your disclosed outside business activities on the Compliance Portal. To disclose a new activity, click 'Submit New' and answers the questions in the Wizard Form. To make changes to an existing activity, click'Update' next to the activity that needs to be updated."},
 {"intent":"compliancehelpdesk.HOW_COMPLETE_FINRA_CE","answer":"Thanks for your question!"},
 {"intent":"compliancehelpdesk.AML_COURSE_CERTIFICATE","answer":"You can print your completion certificate from the Learning Network [link]"},
-{"intent":"compliancehelpdesk.DISCLOSURE_STATEMENT ","answer":"The Personal Disclosure Statement was discontinued as of January 1, 2017."},
+{"intent":"compliancehelpdesk.DISCLOSURE_STATEMENT","answer":"The Personal Disclosure Statement was discontinued as of January 1, 2017."},
 {"intent":"compliancehelpdesk.SWITCH_FORM","answer":"There is a Switch decision grid available on LINKnet. [link]s"},
 {"intent":"compliancehelpdesk.WHEN_I_CONSIDERED_ACTIVE","answer":"Your registration will be reactivated the day after you completed your FINRA CE course."},
 {"intent":"compliancehelpdesk.DISCLOSABLE_EVENT","answer":"Thanks for your question!"},
