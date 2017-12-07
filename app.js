@@ -1,31 +1,41 @@
 let restify = require('restify');
 let builder = require('botbuilder');
-let apiairecognizer = require('api-ai-recognizer');
+let botenv = require('dotenv')
+let apiai = require('apiai');
+var uuid = require('uuid4');
 
 var GlobalRecognizer = require('./recognizers/globalRecognizer');
+var APIAIRecognizer = require('./recognizers/apiairecognizer');
 var CreateDialog =  require('./dialogs/createDialog')
 let qAnda = require('./data.json');
-let smalltalkintents = require('./smalltalk.json');
+
+
 //=========================================================
 // Bot Setup
 //=========================================================
+const result = botenv.config()
+if (result.error) {
+  throw result.error
+}
 
 // Setup Restify Server
 let server = restify.createServer();
+
 server.listen(process.env.port || process.env.PORT || 3978, function () {
    console.log('%s listening to %s', server.name, server.url); 
 });
-  
 // Create chat bot
 let connector = new builder.ChatConnector({
     //MicrosoftAppId : process.env.MICROSOFT_APP_ID,
     //MicrosoftAppPassword : process.env.MICROSOFT_APP_PASSWORD
-    //appId:process.env.MICROSOFT_APP_ID,
-    //appPassword:process.env.MICROSOFT_APP_PASSWORD    
-    appId:null,
-    appPassword:null    
+   // appId:process.env.MICROSOFT_APP_ID,
+    //appPassword:process.env.MICROSOFT_APP_PASSWORD       
+       appId:null,
+       appPassword:null   
 });
 server.post('/api/messages', connector.listen());
+let luisAppUrl = process.env.LUIS_APP_URL ||'http://westus.api.cognitive.microsoft.com/luis/v2.0/apps/92a3b546-ef92-48bf-b216-71d65cac3d80?subscription-key=889559f5d6f34797b013266f77fe2400&staging=true&verbose=true&timezoneOffset=-360&q=';
+let apiaiid = process.env.APIAI_APP_URL || 'a9c2fa56d15b49a69304e38ababe493a';
 
 
 //=========================================================
@@ -34,9 +44,8 @@ server.post('/api/messages', connector.listen());
 let bot = new builder.UniversalBot(connector, function (session, args) {
     session.send("Please rephrase your question!");  
 });
-
+//process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 bot.on('conversationUpdate', function(message) {
-    // Send a hello message when bot is added
     if (message.membersAdded) {
         message.membersAdded.forEach(function(identity) {
             if (identity.id === message.address.bot.id) {
@@ -48,18 +57,10 @@ bot.on('conversationUpdate', function(message) {
 });
 
 GlobalRecognizer.addGlobalRecognizer(bot);
-// Add global LUIS recognizer to bot
-let luisAppUrl = process.env.LUIS_APP_URL ||'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/92a3b546-ef92-48bf-b216-71d65cac3d80?subscription-key=889559f5d6f34797b013266f77fe2400&staging=true&verbose=true&timezoneOffset=-360&q=';
-
 bot.recognizer(new builder.LuisRecognizer(luisAppUrl));
-bot.recognizer(new apiairecognizer('9a85379098d24c04991246bef68f220c'));
-// CRD number  dialog
-bot.dialog('greeting', function (session, args, next) {
-    session.endDialog("Hi! Welcome to Compliance FAQ Bot!!! <br/>How can we help you?");
-})
-.triggerAction({
-    matches: "Greeting",
-});
+var appAPIAI = apiai(apiaiid);
+APIAIRecognizer.addAPIAIRecognizer(bot,appAPIAI,uuid);
+
 bot.dialog('helpDialog', function (session) {
     session.endDialog("This bot will echo back anything you say. Say 'goodbye' to quit.");
 }).triggerAction({ matches: 'Help' });
@@ -68,25 +69,21 @@ bot.dialog('helpDialog', function (session) {
 bot.endConversationAction('goodbyeAction', "Thanks and hope your expectations were met.", { matches: 'Goodbye' });
 
 bot.dialog('cancel', [function (session, args, next) {
-    // session.endDialog("This is a bot relating to Compliance Portal. <br/>How can we help you?");
     builder.Prompts.choice(session, "This will end your conversation. Do you have any further question?", "yes|no", {listStyle: builder.ListStyle.button});     
 },function (session, results) {           
-    // session.send(`You chose: ${results.response.entity}.`); 
     if(results.response.entity=="yes"){
         var msg = "Welcome to Compliance FAQ Bot!!! Please ask your question.";
         session.endConversation(msg);
     }else{
-        session.send(" Thanks and hope your expectations were met.");
+        session.endConversation(" Thanks and hope your expectations were met.");
     }
-}])
-.triggerAction({matches: 'CancelIntent'});
+}]).triggerAction({matches: 'CancelIntent'});
+
+bot.dialog('smalltalk', [function (session, args) {           
+    session.send(args.intent.smalltalkresponse);
+}]).triggerAction({matches: 'SmalltalkIntent'});
 
 //create dialogs for luis intents
 qAnda.complianceqa.forEach(function(element) {
    CreateDialog.createLuisDialog(bot, element.intent);
 });
-//create small talk intents
-smalltalkintents.smalltalk.forEach(function(element) {
-    CreateDialog.createsmalltalkDialog(bot, element.intent);
- });
-

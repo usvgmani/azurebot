@@ -5,12 +5,7 @@ module.exports = {
             var intent = { score: 0.0 };
 
                     if (context.message.text) {
-                        switch (context.message.text.toLowerCase()) {
-                            case 'hi':
-                            case 'hai':
-                            case 'hello':
-                                  intent = { score: 1.0, intent: 'Greeting' };
-                                 break;
+                        switch (context.message.text.toLowerCase()) {             
                             case 'help':
                                 intent = { score: 1.0, intent: 'Help' };
                                 break;
