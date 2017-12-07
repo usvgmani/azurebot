@@ -1,8 +1,11 @@
 let restify = require('restify');
 let builder = require('botbuilder');
+let apiairecognizer = require('api-ai-recognizer');
+
 var GlobalRecognizer = require('./recognizers/globalRecognizer');
 var CreateDialog =  require('./dialogs/createDialog')
 let qAnda = require('./data.json');
+let smalltalkintents = require('./smalltalk.json');
 //=========================================================
 // Bot Setup
 //=========================================================
@@ -17,8 +20,10 @@ server.listen(process.env.port || process.env.PORT || 3978, function () {
 let connector = new builder.ChatConnector({
     //MicrosoftAppId : process.env.MICROSOFT_APP_ID,
     //MicrosoftAppPassword : process.env.MICROSOFT_APP_PASSWORD
-    appId:process.env.MICROSOFT_APP_ID,
-    appPassword:process.env.MICROSOFT_APP_PASSWORD    
+    //appId:process.env.MICROSOFT_APP_ID,
+    //appPassword:process.env.MICROSOFT_APP_PASSWORD    
+    appId:null,
+    appPassword:null    
 });
 server.post('/api/messages', connector.listen());
 
@@ -44,9 +49,10 @@ bot.on('conversationUpdate', function(message) {
 
 GlobalRecognizer.addGlobalRecognizer(bot);
 // Add global LUIS recognizer to bot
-let luisAppUrl = process.env.LUIS_APP_URL;
+let luisAppUrl = process.env.LUIS_APP_URL ||'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/92a3b546-ef92-48bf-b216-71d65cac3d80?subscription-key=889559f5d6f34797b013266f77fe2400&staging=true&verbose=true&timezoneOffset=-360&q=';
 
 bot.recognizer(new builder.LuisRecognizer(luisAppUrl));
+bot.recognizer(new apiairecognizer('9a85379098d24c04991246bef68f220c'));
 // CRD number  dialog
 bot.dialog('greeting', function (session, args, next) {
     session.endDialog("Hi! Welcome to Compliance FAQ Bot!!! <br/>How can we help you?");
@@ -79,5 +85,8 @@ bot.dialog('cancel', [function (session, args, next) {
 qAnda.complianceqa.forEach(function(element) {
    CreateDialog.createLuisDialog(bot, element.intent);
 });
-
+//create small talk intents
+smalltalkintents.smalltalk.forEach(function(element) {
+    CreateDialog.createsmalltalkDialog(bot, element.intent);
+ });
 

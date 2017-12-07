@@ -12,15 +12,18 @@ module.exports = {
         console.log(session.dialogData.HelpDeskAnswer);
         next();
     },
-    helpDeskAnwser : function(session, results) {
-      //  if(session.dialogData.HelpDeskIntent.intents[0].score > 0.30){
-            
+    helpDeskAnwser : function(session, results) {     
         session.send("Your intent was " + session.dialogData.HelpDeskIntent.intents[0].intent + " with probabality-" + session.dialogData.HelpDeskIntent.intents[0].score);
         session.send("Thanks for your question, we have an answer for you! " + session.dialogData.HelpDeskAnswer[0].answer);
-        // session.endDialog();
-      //  }else{
-      //  session.send("Please try to enter your question again!");
-      //  }
         session.endDialog();
-    }
+    },
+    smalltalk: function (session, args){  
+        var fulfillment =  builder.EntityRecognizer.findEntity(args.entities, 'fulfillment');
+        if (fulfillment){
+              var speech = fulfillment.entity;
+              session.send(speech);
+        }else{
+          session.send('hehehe! had enuf with Small talk?! Come on! ');
+        }
+      }
 }
