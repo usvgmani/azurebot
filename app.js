@@ -5,7 +5,6 @@ let apiai = require('apiai');
 var uuid = require('uuid4');
 
 var GlobalRecognizer = require('./recognizers/globalRecognizer');
-var APIAIRecognizer = require('./recognizers/apiairecognizer');
 var CreateDialog =  require('./dialogs/createDialog')
 let qAnda = require('./data.json');
 
@@ -26,25 +25,27 @@ server.listen(process.env.port || process.env.PORT || 3978, function () {
 });
 // Create chat bot
 let connector = new builder.ChatConnector({
-    //MicrosoftAppId : process.env.MICROSOFT_APP_ID,
-    //MicrosoftAppPassword : process.env.MICROSOFT_APP_PASSWORD
    // appId:process.env.MICROSOFT_APP_ID,
     //appPassword:process.env.MICROSOFT_APP_PASSWORD       
        appId:null,
        appPassword:null   
 });
 server.post('/api/messages', connector.listen());
+
 let luisAppUrl = process.env.LUIS_APP_URL ||'http://westus.api.cognitive.microsoft.com/luis/v2.0/apps/92a3b546-ef92-48bf-b216-71d65cac3d80?subscription-key=889559f5d6f34797b013266f77fe2400&staging=true&verbose=true&timezoneOffset=-360&q=';
 let apiaiid = process.env.APIAI_APP_URL || 'a9c2fa56d15b49a69304e38ababe493a';
-
+var appAPIAI = apiai(apiaiid);
 
 //=========================================================
 // Bots Dialogs
 //////////////////////////////////////////////////////////////////////////////////////
 let bot = new builder.UniversalBot(connector, function (session, args) {
-    session.send("Please rephrase your question!");  
+    console.log(session.message.text);
+    //session.send("Please rephrase your question!");  
+    CreateDialog.startsmalltalkDialog(session,session.message.text, uuid,appAPIAI)
+
 });
-//process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 bot.on('conversationUpdate', function(message) {
     if (message.membersAdded) {
         message.membersAdded.forEach(function(identity) {
@@ -58,8 +59,7 @@ bot.on('conversationUpdate', function(message) {
 
 GlobalRecognizer.addGlobalRecognizer(bot);
 bot.recognizer(new builder.LuisRecognizer(luisAppUrl));
-var appAPIAI = apiai(apiaiid);
-APIAIRecognizer.addAPIAIRecognizer(bot,appAPIAI,uuid);
+
 
 bot.dialog('helpDialog', function (session) {
     session.endDialog("This bot will echo back anything you say. Say 'goodbye' to quit.");

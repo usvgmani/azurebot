@@ -9,9 +9,7 @@ module.exports = {
             matches: name
         });
     },
-    createsmalltalkDialog : function (bot,name) {
-        bot.dialog(name, [  smalltalkhandler ]).triggerAction({ 
-             matches: name
-         });
+    startsmalltalkDialog : function (session,text, uuid,apiaiapp) {
+        DialogHandler.smalltalk(session,text, uuid,apiaiapp);
      },
 }
