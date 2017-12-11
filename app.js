@@ -1,8 +1,5 @@
 let restify = require('restify');
 let builder = require('botbuilder');
-let botenv = require('dotenv')
-let apiai = require('apiai');
-var uuid = require('uuid4');
 
 var GlobalRecognizer = require('./recognizers/globalRecognizer');
 var CreateDialog =  require('./dialogs/createDialog')
@@ -27,22 +24,17 @@ server.listen(process.env.port || process.env.PORT || 3978, function () {
 let connector = new builder.ChatConnector({
     appId:process.env.MICROSOFT_APP_ID,
     appPassword:process.env.MICROSOFT_APP_PASSWORD       
-    //   appId:null,
-      // appPassword:null   
 });
 server.post('/api/messages', connector.listen());
 
 let luisAppUrl = process.env.LUIS_APP_URL ||'http://westus.api.cognitive.microsoft.com/luis/v2.0/apps/92a3b546-ef92-48bf-b216-71d65cac3d80?subscription-key=889559f5d6f34797b013266f77fe2400&staging=true&verbose=true&timezoneOffset=-360&q=';
-let apiaiid = process.env.APIAI_APP_URL || 'a9c2fa56d15b49a69304e38ababe493a';
-var appAPIAI = apiai(apiaiid);
 
 //=========================================================
 // Bots Dialogs
 //////////////////////////////////////////////////////////////////////////////////////
 let bot = new builder.UniversalBot(connector, function (session, args) {
     console.log(session.message.text);
-    //session.send("Please rephrase your question!");  
-    CreateDialog.startsmalltalkDialog(session,session.message.text, uuid,appAPIAI)
+    session.send("Please rephrase your question!");  
 
 });
 
@@ -79,9 +71,6 @@ bot.dialog('cancel', [function (session, args, next) {
     }
 }]).triggerAction({matches: 'CancelIntent'});
 
-bot.dialog('smalltalk', [function (session, args) {           
-    session.send(args.intent.smalltalkresponse);
-}]).triggerAction({matches: 'SmalltalkIntent'});
 
 //create dialogs for luis intents
 qAnda.complianceqa.forEach(function(element) {
