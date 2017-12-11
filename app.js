@@ -9,11 +9,6 @@ let qAnda = require('./data.json');
 //=========================================================
 // Bot Setup
 //=========================================================
-const result = botenv.config()
-if (result.error) {
-  throw result.error
-}
-
 // Setup Restify Server
 let server = restify.createServer();
 
